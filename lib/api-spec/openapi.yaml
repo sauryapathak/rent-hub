@@ -1,0 +1,1714 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: RentSaathi - Indian Landlord Rent Tracker API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: properties
+    description: Property management
+  - name: units
+    description: Unit management
+  - name: tenants
+    description: Tenant management
+  - name: payments
+    description: Rent payment tracking
+  - name: agreements
+    description: Rental agreements
+  - name: maintenance
+    description: Maintenance requests
+  - name: expenses
+    description: Expense tracking
+  - name: vendors
+    description: Vendor management
+  - name: dashboard
+    description: Dashboard and summary endpoints
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── Dashboard ──────────────────────────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Portfolio-level summary stats
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Recent activity feed across all properties
+      responses:
+        "200":
+          description: Activity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+  /dashboard/rent-status:
+    get:
+      operationId: getRentStatus
+      tags: [dashboard]
+      summary: Rent collection status breakdown (paid/due/overdue)
+      responses:
+        "200":
+          description: Rent status breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentStatusBreakdown"
+
+  /dashboard/income-chart:
+    get:
+      operationId: getIncomeChart
+      tags: [dashboard]
+      summary: Monthly income chart data for last 12 months
+      responses:
+        "200":
+          description: Chart data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyIncome"
+
+  # ── Properties ─────────────────────────────────────────────────────────────
+  /properties:
+    get:
+      operationId: listProperties
+      tags: [properties]
+      summary: List all properties
+      responses:
+        "200":
+          description: Properties list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Property"
+    post:
+      operationId: createProperty
+      tags: [properties]
+      summary: Add a new property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+
+  /properties/{id}:
+    get:
+      operationId: getProperty
+      tags: [properties]
+      summary: Get a single property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Property
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateProperty
+      tags: [properties]
+      summary: Update a property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PropertyUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Property"
+    delete:
+      operationId: deleteProperty
+      tags: [properties]
+      summary: Delete a property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Units ──────────────────────────────────────────────────────────────────
+  /properties/{propertyId}/units:
+    get:
+      operationId: listUnits
+      tags: [units]
+      summary: List units in a property
+      parameters:
+        - name: propertyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Units list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Unit"
+    post:
+      operationId: createUnit
+      tags: [units]
+      summary: Add a unit to a property
+      parameters:
+        - name: propertyId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnitInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+
+  /units/{id}:
+    get:
+      operationId: getUnit
+      tags: [units]
+      summary: Get a single unit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unit
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+    patch:
+      operationId: updateUnit
+      tags: [units]
+      summary: Update a unit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UnitUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Unit"
+    delete:
+      operationId: deleteUnit
+      tags: [units]
+      summary: Delete a unit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /units:
+    get:
+      operationId: listAllUnits
+      tags: [units]
+      summary: List all units across all properties
+      responses:
+        "200":
+          description: All units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Unit"
+
+  # ── Tenants ────────────────────────────────────────────────────────────────
+  /tenants:
+    get:
+      operationId: listTenants
+      tags: [tenants]
+      summary: List all tenants
+      responses:
+        "200":
+          description: Tenants list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tenant"
+    post:
+      operationId: createTenant
+      tags: [tenants]
+      summary: Add a new tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+
+  /tenants/{id}:
+    get:
+      operationId: getTenant
+      tags: [tenants]
+      summary: Get a tenant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+    patch:
+      operationId: updateTenant
+      tags: [tenants]
+      summary: Update a tenant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+    delete:
+      operationId: deleteTenant
+      tags: [tenants]
+      summary: Delete a tenant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /tenants/{id}/payment-history:
+    get:
+      operationId: getTenantPaymentHistory
+      tags: [tenants]
+      summary: Get payment history for a tenant
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payment history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+
+  # ── Payments ───────────────────────────────────────────────────────────────
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List all payments
+      responses:
+        "200":
+          description: Payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Log a rent payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/{id}:
+    get:
+      operationId: getPayment
+      tags: [payments]
+      summary: Get a payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+    patch:
+      operationId: updatePayment
+      tags: [payments]
+      summary: Update a payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/overdue:
+    get:
+      operationId: getOverduePayments
+      tags: [payments]
+      summary: List all overdue rent payments
+      responses:
+        "200":
+          description: Overdue payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+
+  # ── Agreements ─────────────────────────────────────────────────────────────
+  /agreements:
+    get:
+      operationId: listAgreements
+      tags: [agreements]
+      summary: List all rental agreements
+      responses:
+        "200":
+          description: Agreements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agreement"
+    post:
+      operationId: createAgreement
+      tags: [agreements]
+      summary: Create a rental agreement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgreementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+
+  /agreements/{id}:
+    get:
+      operationId: getAgreement
+      tags: [agreements]
+      summary: Get an agreement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Agreement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+    patch:
+      operationId: updateAgreement
+      tags: [agreements]
+      summary: Update an agreement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgreementUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+    delete:
+      operationId: deleteAgreement
+      tags: [agreements]
+      summary: Delete an agreement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /agreements/expiring:
+    get:
+      operationId: getExpiringAgreements
+      tags: [agreements]
+      summary: Agreements expiring within 60 days
+      responses:
+        "200":
+          description: Expiring agreements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agreement"
+
+  # ── Maintenance ────────────────────────────────────────────────────────────
+  /maintenance:
+    get:
+      operationId: listMaintenanceRequests
+      tags: [maintenance]
+      summary: List all maintenance requests
+      responses:
+        "200":
+          description: Maintenance requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MaintenanceRequest"
+    post:
+      operationId: createMaintenanceRequest
+      tags: [maintenance]
+      summary: Raise a maintenance request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceRequest"
+
+  /maintenance/{id}:
+    get:
+      operationId: getMaintenanceRequest
+      tags: [maintenance]
+      summary: Get a maintenance request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Maintenance request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceRequest"
+    patch:
+      operationId: updateMaintenanceRequest
+      tags: [maintenance]
+      summary: Update a maintenance request status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaintenanceUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceRequest"
+
+  # ── Expenses ───────────────────────────────────────────────────────────────
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: List all expenses
+      responses:
+        "200":
+          description: Expenses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Log an expense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+
+  /expenses/{id}:
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Update an expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Delete an expense
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /expenses/summary:
+    get:
+      operationId: getExpenseSummary
+      tags: [expenses]
+      summary: Expense breakdown by category
+      responses:
+        "200":
+          description: Expense summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseSummary"
+
+  # ── Vendors ────────────────────────────────────────────────────────────────
+  /vendors:
+    get:
+      operationId: listVendors
+      tags: [vendors]
+      summary: List all vendors
+      responses:
+        "200":
+          description: Vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vendor"
+    post:
+      operationId: createVendor
+      tags: [vendors]
+      summary: Add a vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+
+  /vendors/{id}:
+    get:
+      operationId: getVendor
+      tags: [vendors]
+      summary: Get a vendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vendor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+    patch:
+      operationId: updateVendor
+      tags: [vendors]
+      summary: Update a vendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vendor"
+    delete:
+      operationId: deleteVendor
+      tags: [vendors]
+      summary: Delete a vendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    # ── Dashboard schemas ─────────────────────────────────────────────────
+    DashboardSummary:
+      type: object
+      required:
+        - totalProperties
+        - totalUnits
+        - occupiedUnits
+        - vacantUnits
+        - totalMonthlyIncome
+        - collectedThisMonth
+        - pendingDues
+        - overdueCount
+        - occupancyRate
+        - agreementsExpiringSoon
+      properties:
+        totalProperties:
+          type: integer
+        totalUnits:
+          type: integer
+        occupiedUnits:
+          type: integer
+        vacantUnits:
+          type: integer
+        totalMonthlyIncome:
+          type: number
+        collectedThisMonth:
+          type: number
+        pendingDues:
+          type: number
+        overdueCount:
+          type: integer
+        occupancyRate:
+          type: number
+        agreementsExpiringSoon:
+          type: integer
+
+    ActivityItem:
+      type: object
+      required:
+        - id
+        - type
+        - description
+        - timestamp
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [payment, maintenance, agreement, tenant, vacancy]
+        description:
+          type: string
+        timestamp:
+          type: string
+        propertyName:
+          type: ["string", "null"]
+        unitName:
+          type: ["string", "null"]
+        amount:
+          type: ["number", "null"]
+
+    RentStatusBreakdown:
+      type: object
+      required:
+        - paid
+        - due
+        - overdue
+        - partial
+      properties:
+        paid:
+          type: integer
+        due:
+          type: integer
+        overdue:
+          type: integer
+        partial:
+          type: integer
+
+    MonthlyIncome:
+      type: object
+      required:
+        - month
+        - income
+        - expenses
+      properties:
+        month:
+          type: string
+        income:
+          type: number
+        expenses:
+          type: number
+
+    ExpenseSummary:
+      type: object
+      required:
+        - total
+        - categories
+      properties:
+        total:
+          type: number
+        categories:
+          type: array
+          items:
+            type: object
+            required: [category, amount]
+            properties:
+              category:
+                type: string
+              amount:
+                type: number
+
+    # ── Property schemas ───────────────────────────────────────────────────
+    Property:
+      type: object
+      required:
+        - id
+        - name
+        - address
+        - city
+        - state
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [residential, commercial, mixed]
+        photo:
+          type: ["string", "null"]
+        totalUnits:
+          type: ["integer", "null"]
+        occupiedUnits:
+          type: ["integer", "null"]
+        monthlyIncome:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    PropertyInput:
+      type: object
+      required:
+        - name
+        - address
+        - city
+        - state
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        type:
+          type: string
+          enum: [residential, commercial, mixed]
+        photo:
+          type: string
+
+    PropertyUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        type:
+          type: string
+          enum: [residential, commercial, mixed]
+        photo:
+          type: string
+
+    # ── Unit schemas ─────────────────────────────────────────────────────────
+    Unit:
+      type: object
+      required:
+        - id
+        - propertyId
+        - unitNumber
+        - type
+        - rentAmount
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+        propertyId:
+          type: integer
+        propertyName:
+          type: ["string", "null"]
+        unitNumber:
+          type: string
+        floor:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [room, shop, flat, pg, studio, office]
+        rentAmount:
+          type: number
+        depositAmount:
+          type: ["number", "null"]
+        status:
+          type: string
+          enum: [occupied, vacant, maintenance]
+        amenities:
+          type: ["string", "null"]
+        tenantId:
+          type: ["integer", "null"]
+        tenantName:
+          type: ["string", "null"]
+        rentDueDay:
+          type: ["integer", "null"]
+        lastPaymentDate:
+          type: ["string", "null"]
+        paymentStatus:
+          type: ["string", "null"]
+          enum: [paid, due, overdue, partial, null]
+        createdAt:
+          type: string
+
+    UnitInput:
+      type: object
+      required:
+        - unitNumber
+        - type
+        - rentAmount
+      properties:
+        unitNumber:
+          type: string
+        floor:
+          type: string
+        type:
+          type: string
+          enum: [room, shop, flat, pg, studio, office]
+        rentAmount:
+          type: number
+        depositAmount:
+          type: number
+        amenities:
+          type: string
+        rentDueDay:
+          type: integer
+
+    UnitUpdate:
+      type: object
+      properties:
+        unitNumber:
+          type: string
+        floor:
+          type: string
+        type:
+          type: string
+          enum: [room, shop, flat, pg, studio, office]
+        rentAmount:
+          type: number
+        depositAmount:
+          type: number
+        status:
+          type: string
+          enum: [occupied, vacant, maintenance]
+        amenities:
+          type: string
+        tenantId:
+          type: ["integer", "null"]
+        rentDueDay:
+          type: integer
+
+    # ── Tenant schemas ────────────────────────────────────────────────────────
+    Tenant:
+      type: object
+      required:
+        - id
+        - name
+        - phone
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        photo:
+          type: ["string", "null"]
+        aadhaarNumber:
+          type: ["string", "null"]
+        panNumber:
+          type: ["string", "null"]
+        employer:
+          type: ["string", "null"]
+        emergencyContact:
+          type: ["string", "null"]
+        emergencyPhone:
+          type: ["string", "null"]
+        policeVerified:
+          type: boolean
+        kycStatus:
+          type: string
+          enum: [pending, partial, complete]
+        unitId:
+          type: ["integer", "null"]
+        unitNumber:
+          type: ["string", "null"]
+        propertyName:
+          type: ["string", "null"]
+        moveInDate:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    TenantInput:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        photo:
+          type: string
+        aadhaarNumber:
+          type: string
+        panNumber:
+          type: string
+        employer:
+          type: string
+        emergencyContact:
+          type: string
+        emergencyPhone:
+          type: string
+        unitId:
+          type: integer
+        moveInDate:
+          type: string
+
+    TenantUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        photo:
+          type: string
+        aadhaarNumber:
+          type: string
+        panNumber:
+          type: string
+        employer:
+          type: string
+        emergencyContact:
+          type: string
+        emergencyPhone:
+          type: string
+        policeVerified:
+          type: boolean
+        kycStatus:
+          type: string
+          enum: [pending, partial, complete]
+        unitId:
+          type: ["integer", "null"]
+        moveInDate:
+          type: string
+
+    # ── Payment schemas ────────────────────────────────────────────────────────
+    Payment:
+      type: object
+      required:
+        - id
+        - tenantId
+        - unitId
+        - amount
+        - month
+        - year
+        - status
+        - mode
+        - createdAt
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        tenantName:
+          type: ["string", "null"]
+        unitId:
+          type: integer
+        unitNumber:
+          type: ["string", "null"]
+        propertyName:
+          type: ["string", "null"]
+        amount:
+          type: number
+        rentAmount:
+          type: ["number", "null"]
+        partialAmount:
+          type: ["number", "null"]
+        month:
+          type: integer
+        year:
+          type: integer
+        status:
+          type: string
+          enum: [paid, partial, pending, overdue]
+        mode:
+          type: string
+          enum: [upi, cash, bank_transfer, cheque]
+        upiTransactionId:
+          type: ["string", "null"]
+        paidAt:
+          type: ["string", "null"]
+        dueDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        receiptUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    PaymentInput:
+      type: object
+      required:
+        - tenantId
+        - unitId
+        - amount
+        - month
+        - year
+        - mode
+      properties:
+        tenantId:
+          type: integer
+        unitId:
+          type: integer
+        amount:
+          type: number
+        partialAmount:
+          type: number
+        month:
+          type: integer
+        year:
+          type: integer
+        status:
+          type: string
+          enum: [paid, partial, pending, overdue]
+        mode:
+          type: string
+          enum: [upi, cash, bank_transfer, cheque]
+        upiTransactionId:
+          type: string
+        paidAt:
+          type: string
+        dueDate:
+          type: string
+        notes:
+          type: string
+
+    PaymentUpdate:
+      type: object
+      properties:
+        amount:
+          type: number
+        partialAmount:
+          type: number
+        status:
+          type: string
+          enum: [paid, partial, pending, overdue]
+        mode:
+          type: string
+          enum: [upi, cash, bank_transfer, cheque]
+        upiTransactionId:
+          type: string
+        paidAt:
+          type: string
+        notes:
+          type: string
+
+    # ── Agreement schemas ─────────────────────────────────────────────────────
+    Agreement:
+      type: object
+      required:
+        - id
+        - tenantId
+        - unitId
+        - type
+        - startDate
+        - endDate
+        - rentAmount
+        - depositAmount
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        tenantName:
+          type: ["string", "null"]
+        unitId:
+          type: integer
+        unitNumber:
+          type: ["string", "null"]
+        propertyName:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [residential, shop, pg, room]
+        startDate:
+          type: string
+        endDate:
+          type: string
+        rentAmount:
+          type: number
+        depositAmount:
+          type: number
+        noticePeriodDays:
+          type: ["integer", "null"]
+        terms:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, expired, terminated, draft]
+        daysToExpiry:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    AgreementInput:
+      type: object
+      required:
+        - tenantId
+        - unitId
+        - type
+        - startDate
+        - endDate
+        - rentAmount
+        - depositAmount
+      properties:
+        tenantId:
+          type: integer
+        unitId:
+          type: integer
+        type:
+          type: string
+          enum: [residential, shop, pg, room]
+        startDate:
+          type: string
+        endDate:
+          type: string
+        rentAmount:
+          type: number
+        depositAmount:
+          type: number
+        noticePeriodDays:
+          type: integer
+        terms:
+          type: string
+
+    AgreementUpdate:
+      type: object
+      properties:
+        startDate:
+          type: string
+        endDate:
+          type: string
+        rentAmount:
+          type: number
+        depositAmount:
+          type: number
+        noticePeriodDays:
+          type: integer
+        terms:
+          type: string
+        status:
+          type: string
+          enum: [active, expired, terminated, draft]
+
+    # ── Maintenance schemas ───────────────────────────────────────────────────
+    MaintenanceRequest:
+      type: object
+      required:
+        - id
+        - unitId
+        - tenantId
+        - category
+        - description
+        - status
+        - priority
+        - createdAt
+      properties:
+        id:
+          type: integer
+        unitId:
+          type: integer
+        unitNumber:
+          type: ["string", "null"]
+        propertyName:
+          type: ["string", "null"]
+        tenantId:
+          type: integer
+        tenantName:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [plumbing, electrical, carpentry, painting, cleaning, pest_control, other]
+        description:
+          type: string
+        status:
+          type: string
+          enum: [raised, acknowledged, in_progress, resolved, closed]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        assignedVendorId:
+          type: ["integer", "null"]
+        assignedVendorName:
+          type: ["string", "null"]
+        cost:
+          type: ["number", "null"]
+        deductFromDeposit:
+          type: boolean
+        resolvedAt:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    MaintenanceInput:
+      type: object
+      required:
+        - unitId
+        - tenantId
+        - category
+        - description
+        - priority
+      properties:
+        unitId:
+          type: integer
+        tenantId:
+          type: integer
+        category:
+          type: string
+          enum: [plumbing, electrical, carpentry, painting, cleaning, pest_control, other]
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        notes:
+          type: string
+
+    MaintenanceUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [raised, acknowledged, in_progress, resolved, closed]
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+        assignedVendorId:
+          type: ["integer", "null"]
+        cost:
+          type: number
+        deductFromDeposit:
+          type: boolean
+        resolvedAt:
+          type: string
+        notes:
+          type: string
+
+    # ── Expense schemas ────────────────────────────────────────────────────────
+    Expense:
+      type: object
+      required:
+        - id
+        - propertyId
+        - category
+        - amount
+        - date
+        - description
+        - createdAt
+      properties:
+        id:
+          type: integer
+        propertyId:
+          type: integer
+        propertyName:
+          type: ["string", "null"]
+        unitId:
+          type: ["integer", "null"]
+        unitNumber:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [repair, painting, property_tax, insurance, maintenance, utilities, other]
+        amount:
+          type: number
+        date:
+          type: string
+        description:
+          type: string
+        receiptUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    ExpenseInput:
+      type: object
+      required:
+        - propertyId
+        - category
+        - amount
+        - date
+        - description
+      properties:
+        propertyId:
+          type: integer
+        unitId:
+          type: integer
+        category:
+          type: string
+          enum: [repair, painting, property_tax, insurance, maintenance, utilities, other]
+        amount:
+          type: number
+        date:
+          type: string
+        description:
+          type: string
+        receiptUrl:
+          type: string
+
+    ExpenseUpdate:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [repair, painting, property_tax, insurance, maintenance, utilities, other]
+        amount:
+          type: number
+        date:
+          type: string
+        description:
+          type: string
+        receiptUrl:
+          type: string
+
+    # ── Vendor schemas ─────────────────────────────────────────────────────────
+    Vendor:
+      type: object
+      required:
+        - id
+        - name
+        - phone
+        - category
+        - createdAt
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: ["string", "null"]
+        category:
+          type: string
+          enum: [plumber, electrician, carpenter, painter, pest_control, cleaner, other]
+        rating:
+          type: ["number", "null"]
+        rateCard:
+          type: ["string", "null"]
+        available:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    VendorInput:
+      type: object
+      required:
+        - name
+        - phone
+        - category
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        category:
+          type: string
+          enum: [plumber, electrician, carpenter, painter, pest_control, cleaner, other]
+        rating:
+          type: number
+        rateCard:
+          type: string
+        notes:
+          type: string
+
+    VendorUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        category:
+          type: string
+          enum: [plumber, electrician, carpenter, painter, pest_control, cleaner, other]
+        rating:
+          type: number
+        rateCard:
+          type: string
+        available:
+          type: boolean
+        notes:
+          type: string
